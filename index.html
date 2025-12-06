@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSSトレーナー</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 0;
+            min-height: 600px;
+        }
+
+        .sidebar {
+            background: #f8f9fa;
+            border-right: 1px solid #dee2e6;
+            overflow-y: auto;
+            max-height: 700px;
+        }
+
+        .content-area {
+            padding: 30px;
+            overflow-y: auto;
+            max-height: 700px;
+        }
+
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            z-index: 1000;
+        }
+
+        .menu-toggle:active {
+            transform: scale(0.95);
+        }
+
+        .sidebar-overlay {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 0;
+            }
+
+            .container {
+                border-radius: 0;
+                min-height: 100vh;
+            }
+
+            header {
+                padding: 20px 15px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .subtitle {
+                font-size: 0.9em;
+            }
+
+            .main-content {
+                grid-template-columns: 1fr;
+                min-height: auto;
+            }
+
+            .sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                width: 80%;
+                max-width: 300px;
+                max-height: 100vh;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                z-index: 999;
+                border-right: none;
+                box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .sidebar-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: 998;
+            }
+
+            .sidebar-overlay.active {
+                display: block;
+            }
+
+            .content-area {
+                padding: 15px;
+                max-height: none;
+                overflow-y: visible;
+            }
+
+            .property-title {
+                font-size: 1.5em;
+            }
+
+            .property-description {
+                font-size: 1em;
+            }
+
+            .controls {
+                padding: 15px;
+            }
+
+            .preview-area {
+                padding: 20px;
+                min-height: 250px;
+            }
+
+            .preview-box {
+                padding: 20px;
+                font-size: 1em;
+            }
+
+            .code-section {
+                padding: 15px;
+                font-size: 0.9em;
+            }
+
+            .copy-btn {
+                padding: 6px 12px;
+                font-size: 0.8em;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+        }
+
+        .category {
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .category-header {
+            padding: 15px 20px;
+            background: #e9ecef;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.3s;
+        }
+
+        .category-header:hover {
+            background: #dee2e6;
+        }
+
+        .category-header.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .property-list {
+            display: none;
+            background: white;
+        }
+
+        .property-list.active {
+            display: block;
+        }
+
+        .property-item {
+            padding: 12px 20px 12px 40px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+        }
+
+        .property-item:hover {
+            background: #f8f9fa;
+            border-left-color: #667eea;
+        }
+
+        .property-item.selected {
+            background: #e7f3ff;
+            border-left-color: #667eea;
+            font-weight: bold;
+        }
+
+        .content-area {
+            padding: 30px;
+            overflow-y: auto;
+            max-height: 700px;
+        }
+
+        .property-title {
+            font-size: 2em;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .property-description {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .controls {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .control-group input[type="range"],
+        .control-group input[type="color"],
+        .control-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        .control-group input[type="range"] {
+            cursor: pointer;
+        }
+
+        .value-display {
+            display: inline-block;
+            margin-left: 10px;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .preview-area {
+            background: #fff;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            padding: 40px;
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .preview-box {
+            background: #667eea;
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            font-size: 1.2em;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .code-section {
+            margin-top: 30px;
+            background: #282c34;
+            color: #abb2bf;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            position: relative;
+        }
+
+        .code-header {
+            color: #61afef;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .code-content {
+            white-space: pre-wrap;
+            line-height: 1.5;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+
+        .copy-btn:hover {
+            background: #5568d3;
+        }
+
+        .arrow {
+            transition: transform 0.3s;
+        }
+
+        .arrow.rotated {
+            transform: rotate(180deg);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>CSSトレーナー1.0</h1>
+            <p class="subtitle">CSSプロパティを体系的に学ぼう</p>
+        </header>
+
+        <div class="main-content">
+            <div class="sidebar-overlay" id="overlay" onclick="toggleMenu()"></div>
+            <div class="sidebar" id="sidebar"></div>
+            <div class="content-area" id="content"></div>
+        </div>
+        
+        <button class="menu-toggle" id="menuToggle" onclick="toggleMenu()">☰</button>
+    </div>
+
+    <footer>
+        designed by Onochang @<a href="https://sunabaco.com/">SUNABACO</a>
+    </footer>
+
+    <script>
+        const cssProperties = {
+            "テキスト": {
+                "color": {
+                    name: "color",
+                    description: "テキストの色を変更します",
+                    controls: [
+                        { type: "color", label: "色", property: "color", default: "#667eea" }
+                    ]
+                },
+                "font-size": {
+                    name: "font-size",
+                    description: "テキストのサイズを変更します",
+                    controls: [
+                        { type: "range", label: "サイズ", property: "font-size", min: 12, max: 72, default: 20, unit: "px" }
+                    ]
+                },
+                "font-weight": {
+                    name: "font-weight",
+                    description: "テキストの太さを変更します",
+                    controls: [
+                        { type: "select", label: "太さ", property: "font-weight", options: ["normal", "bold", "100", "300", "400", "500", "700", "900"], default: "normal" }
+                    ]
+                },
+                "text-align": {
+                    name: "text-align",
+                    description: "テキストの配置を変更します",
+                    controls: [
+                        { type: "select", label: "配置", property: "text-align", options: ["left", "center", "right", "justify"], default: "center" }
+                    ]
+                },
+                "letter-spacing": {
+                    name: "letter-spacing",
+                    description: "文字間のスペースを調整します",
+                    controls: [
+                        { type: "range", label: "間隔", property: "letter-spacing", min: -5, max: 20, default: 0, unit: "px" }
+                    ]
+                },
+                "line-height": {
+                    name: "line-height",
+                    description: "行の高さを調整します",
+                    controls: [
+                        { type: "range", label: "高さ", property: "line-height", min: 0.5, max: 3, default: 1.5, step: 0.1, unit: "" }
+                    ]
+                }
+            },
+            "背景": {
+                "background-color": {
+                    name: "background-color",
+                    description: "背景色を変更します",
+                    controls: [
+                        { type: "color", label: "背景色", property: "background-color", default: "#667eea" }
+                    ]
+                },
+                "opacity": {
+                    name: "opacity",
+                    description: "要素の透明度を変更します",
+                    controls: [
+                        { type: "range", label: "透明度", property: "opacity", min: 0, max: 1, default: 1, step: 0.1, unit: "" }
+                    ]
+                }
+            },
+            "ボーダー": {
+                "border-width": {
+                    name: "border-width",
+                    description: "ボーダーの太さを変更します",
+                    controls: [
+                        { type: "range", label: "太さ", property: "border-width", min: 0, max: 20, default: 0, unit: "px" }
+                    ],
+                    extraStyles: { "border-style": "solid", "border-color": "#333" }
+                },
+                "border-radius": {
+                    name: "border-radius",
+                    description: "角を丸くします",
+                    controls: [
+                        { type: "range", label: "丸み", property: "border-radius", min: 0, max: 100, default: 10, unit: "px" }
+                    ]
+                },
+                "border-style": {
+                    name: "border-style",
+                    description: "ボーダーのスタイルを変更します",
+                    controls: [
+                        { type: "select", label: "スタイル", property: "border-style", options: ["none", "solid", "dashed", "dotted", "double", "groove", "ridge"], default: "solid" }
+                    ],
+                    extraStyles: { "border-width": "5px", "border-color": "#333" }
+                }
+            },
+            "レイアウト": {
+                "width": {
+                    name: "width",
+                    description: "要素の幅を変更します",
+                    controls: [
+                        { type: "range", label: "幅", property: "width", min: 50, max: 400, default: 200, unit: "px" }
+                    ]
+                },
+                "height": {
+                    name: "height",
+                    description: "要素の高さを変更します",
+                    controls: [
+                        { type: "range", label: "高さ", property: "height", min: 50, max: 400, default: 150, unit: "px" }
+                    ]
+                },
+                "padding": {
+                    name: "padding",
+                    description: "内側の余白を変更します",
+                    controls: [
+                        { type: "range", label: "余白", property: "padding", min: 0, max: 100, default: 30, unit: "px" }
+                    ]
+                },
+                "margin": {
+                    name: "margin",
+                    description: "外側の余白を変更します（視覚的に確認しやすいよう背景色を追加しています）",
+                    controls: [
+                        { type: "range", label: "余白", property: "margin", min: 0, max: 100, default: 20, unit: "px" }
+                    ],
+                    wrapperStyle: { "background": "#ffe0e0", "padding": "10px" }
+                }
+            },
+            "変形・効果": {
+                "transform: rotate": {
+                    name: "transform: rotate",
+                    description: "要素を回転させます",
+                    controls: [
+                        { type: "range", label: "角度", property: "transform", min: -180, max: 180, default: 0, unit: "deg", transform: "rotate" }
+                    ]
+                },
+                "transform: scale": {
+                    name: "transform: scale",
+                    description: "要素を拡大・縮小します",
+                    controls: [
+                        { type: "range", label: "スケール", property: "transform", min: 0.5, max: 2, default: 1, step: 0.1, unit: "", transform: "scale" }
+                    ]
+                },
+                "box-shadow": {
+                    name: "box-shadow",
+                    description: "影をつけます",
+                    controls: [
+                        { type: "range", label: "水平", property: "box-shadow", min: -20, max: 20, default: 0, unit: "px", shadowIndex: 0 },
+                        { type: "range", label: "垂直", property: "box-shadow", min: -20, max: 20, default: 5, unit: "px", shadowIndex: 1 },
+                        { type: "range", label: "ぼかし", property: "box-shadow", min: 0, max: 50, default: 15, unit: "px", shadowIndex: 2 },
+                        { type: "color", label: "色", property: "box-shadow", default: "rgba(0,0,0,0.3)", shadowIndex: 3 }
+                    ]
+                }
+            }
+        };
+
+        let currentProperty = null;
+        let shadowValues = [0, 5, 15, "rgba(0,0,0,0.3)"];
+
+        function initSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            let html = '';
+            
+            Object.keys(cssProperties).forEach(category => {
+                html += `
+                    <div class="category">
+                        <div class="category-header" onclick="toggleCategory('${category}')">
+                            ${category}
+                            <span class="arrow">▼</span>
+                        </div>
+                        <div class="property-list" id="category-${category}">
+                            ${Object.keys(cssProperties[category]).map(prop => `
+                                <div class="property-item" onclick="selectProperty('${category}', '${prop}')">
+                                    ${prop}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            sidebar.innerHTML = html;
+        }
+
+        function toggleCategory(category) {
+            const list = document.getElementById(`category-${category}`);
+            const header = list.previousElementSibling;
+            const arrow = header.querySelector('.arrow');
+            
+            list.classList.toggle('active');
+            arrow.classList.toggle('rotated');
+        }
+
+        function selectProperty(category, propName) {
+            document.querySelectorAll('.property-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            event.target.classList.add('selected');
+            
+            currentProperty = cssProperties[category][propName];
+            shadowValues = [0, 5, 15, "rgba(0,0,0,0.3)"];
+            renderProperty();
+            
+            // スマホの場合はメニューを閉じる
+            if (window.innerWidth <= 768) {
+                toggleMenu();
+            }
+        }
+
+        function toggleMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+        }
+
+        function renderProperty() {
+            if (!currentProperty) {
+                document.getElementById('content').innerHTML = `
+                    <div style="text-align: center; padding: 100px 20px; color: #999;">
+                        <h2>左のメニューからCSSプロパティを選択してください</h2>
+                        <p style="margin-top: 20px;">各プロパティの効果をリアルタイムで確認できます</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const content = document.getElementById('content');
+            let controlsHtml = '';
+            
+            currentProperty.controls.forEach((control, index) => {
+                if (control.type === 'range') {
+                    controlsHtml += `
+                        <div class="control-group">
+                            <label>${control.label}: <span class="value-display" id="value-${index}">${control.default}${control.unit || ''}</span></label>
+                            <input type="range" id="control-${index}" min="${control.min}" max="${control.max}" value="${control.default}" step="${control.step || 1}">
+                        </div>
+                    `;
+                } else if (control.type === 'color') {
+                    controlsHtml += `
+                        <div class="control-group">
+                            <label>${control.label}</label>
+                            <input type="color" id="control-${index}" value="${control.default}">
+                        </div>
+                    `;
+                } else if (control.type === 'select') {
+                    controlsHtml += `
+                        <div class="control-group">
+                            <label>${control.label}</label>
+                            <select id="control-${index}">
+                                ${control.options.map(opt => `<option value="${opt}" ${opt === control.default ? 'selected' : ''}>${opt}</option>`).join('')}
+                            </select>
+                        </div>
+                    `;
+                }
+            });
+
+            content.innerHTML = `
+                <h2 class="property-title">${currentProperty.name}</h2>
+                <p class="property-description">${currentProperty.description}</p>
+                
+                <div class="controls">
+                    <h3 style="margin-bottom: 15px;">コントロール</h3>
+                    ${controlsHtml}
+                </div>
+                
+                <div class="preview-area" id="preview-wrapper">
+                    <div class="preview-box" id="preview">
+                        プレビュー
+                    </div>
+                </div>
+                
+                <div class="code-section">
+                    <div class="code-header">CSS コード</div>
+                    <button class="copy-btn" onclick="copyCode()">コピー</button>
+                    <div class="code-content" id="code-display"></div>
+                </div>
+            `;
+
+            currentProperty.controls.forEach((control, index) => {
+                const element = document.getElementById(`control-${index}`);
+                element.addEventListener('input', () => updatePreview());
+            });
+
+            updatePreview();
+        }
+
+        function updatePreview() {
+            const preview = document.getElementById('preview');
+            const wrapper = document.getElementById('preview-wrapper');
+            const codeDisplay = document.getElementById('code-display');
+            let styles = {};
+            let cssCode = '';
+
+            if (currentProperty.extraStyles) {
+                Object.assign(styles, currentProperty.extraStyles);
+            }
+
+            currentProperty.controls.forEach((control, index) => {
+                const element = document.getElementById(`control-${index}`);
+                const value = element.value;
+
+                if (control.type === 'range') {
+                    document.getElementById(`value-${index}`).textContent = value + (control.unit || '');
+                }
+
+                if (control.transform) {
+                    styles['transform'] = `${control.transform}(${value}${control.unit || ''})`;
+                } else if (control.shadowIndex !== undefined) {
+                    shadowValues[control.shadowIndex] = control.type === 'color' ? value : value + (control.unit || '');
+                    styles['box-shadow'] = `${shadowValues[0]} ${shadowValues[1]} ${shadowValues[2]} ${shadowValues[3]}`;
+                } else {
+                    styles[control.property] = value + (control.unit || '');
+                }
+            });
+
+            Object.keys(styles).forEach(prop => {
+                preview.style[prop] = styles[prop];
+                cssCode += `  ${prop}: ${styles[prop]};\n`;
+            });
+
+            if (currentProperty.wrapperStyle) {
+                Object.keys(currentProperty.wrapperStyle).forEach(prop => {
+                    wrapper.style[prop] = currentProperty.wrapperStyle[prop];
+                });
+            } else {
+                wrapper.style.background = '#fff';
+                wrapper.style.padding = '40px';
+            }
+
+            codeDisplay.textContent = `.preview-box {\n${cssCode}}`;
+        }
+
+        function copyCode() {
+            const code = document.getElementById('code-display').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                const btn = document.querySelector('.copy-btn');
+                const originalText = btn.textContent;
+                btn.textContent = 'コピーしました！';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+            });
+        }
+
+        initSidebar();
+        selectProperty('テキスト', 'color');
+        
+        // 初回表示時にテキストカテゴリを開く
+        toggleCategory('テキスト');
+    </script>
+</body>
+</html>
